@@ -1,8 +1,40 @@
+'use client';
+
 import Image from 'next/image';
+import { useAuth } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  const { user, logout, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  // Don't render anything while checking authentication
+  if (loading || !user) {
+    return null;
+  }
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <div className="flex justify-end w-full">
+        <div className="text-sm">
+          Welcome, {user.username} | 
+          <button 
+            onClick={logout}
+            className="ml-2 text-blue-500 hover:underline"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
