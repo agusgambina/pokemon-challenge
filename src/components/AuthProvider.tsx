@@ -10,8 +10,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   loading: boolean;
 }
 
@@ -24,24 +24,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if user is logged in on component mount
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
+    const checkAuth = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
-  const login = (username: string, password: string) => {
-    const success = loginUser(username, password);
-    if (success) {
-      setUser({ username });
-      router.push('/');
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const success = await loginUser(username, password);
+      if (success) {
+        setUser({ username });
+        router.push('/');
+      }
+      return success;
+    } catch (error) {
+      console.error('Login error in context:', error);
+      return false;
     }
-    return success;
   };
 
-  const logout = () => {
-    logoutUser();
-    setUser(null);
-    router.push('/login');
+  const logout = async (): Promise<void> => {
+    try {
+      await logoutUser();
+      setUser(null);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error in context:', error);
+    }
   };
 
   return (

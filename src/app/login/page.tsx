@@ -9,6 +9,7 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login, user, loading } = useAuth();
   const router = useRouter();
 
@@ -20,7 +21,7 @@ export default function Login() {
     }
   }, [user, loading, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -29,9 +30,18 @@ export default function Login() {
       return;
     }
     
-    const success = login(username, password);
-    if (!success) {
-      setError('Invalid username or password');
+    setIsLoading(true);
+    
+    try {
+      const success = await login(username, password);
+      if (!success) {
+        setError('Invalid username or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -70,6 +80,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+              disabled={isLoading}
             />
           </div>
           
@@ -83,14 +94,16 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+              disabled={isLoading}
             />
           </div>
           
           <button
             type="submit"
             className="w-full py-3 px-4 bg-foreground text-background rounded-full hover:bg-[#383838] dark:hover:bg-[#ccc] transition-colors"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

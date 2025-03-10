@@ -1,0 +1,16 @@
+# Login to the application
+# @name postLogin
+POST {{REST_CLIENT_PROTOCOL}}://{{REST_CLIENT_HOST}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### GET Token
+@token = {{postLogin.response.body.token}}
+
+### Get the current user
+GET {{REST_CLIENT_PROTOCOL}}://{{REST_CLIENT_HOST}}/api/auth/user
+Authorization: Bearer {{token}}

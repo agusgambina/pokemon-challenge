@@ -1,0 +1,6 @@
+# Login to the application
+# @name postLogout
+POST {{REST_CLIENT_PROTOCOL}}://{{REST_CLIENT_HOST}}/api/auth/logout
+Content-Type: application/json
+
+{}

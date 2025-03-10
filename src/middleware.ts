@@ -1,20 +1,53 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { JWT_SECRET } from './lib/config';
+import * as jose from 'jose';
 
-export function middleware(request: NextRequest) {
-  // This would normally check a JWT or session cookie
-  // For this simple example, we'll redirect based on a client-side check
-  // Note: In a production app, use server-side authentication instead
-  
-  // Skip middleware for login page and API routes
-  if (request.nextUrl.pathname.startsWith('/login') || 
-      request.nextUrl.pathname.startsWith('/api')) {
+export async function middleware(request: NextRequest) {
+  // Skip middleware for login page, public assets, and API routes
+  if (
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/_next') ||
+    request.nextUrl.pathname.startsWith('/api') ||
+    request.nextUrl.pathname.startsWith('/favicon.ico')
+  ) {
     return NextResponse.next();
   }
 
-  // For demonstration purposes only - in real apps, check auth on the server
-  // We'll redirect from the client side for this example
-  return NextResponse.next();
+  try {
+    // Get auth token from cookies
+    const token = request.cookies.get('token')?.value;
+
+    // If no token exists, redirect to login
+    if (!token) {
+      const url = new URL('/login', request.url);
+      return NextResponse.redirect(url);
+    }
+
+    // For middleware, we'll need to use jose instead of jsonwebtoken
+    // since middleware runs in the Edge Runtime which doesn't support
+    // Node.js crypto module that jsonwebtoken depends on
+    try {
+      // We'll just check if the JWT is valid, not extracting the payload here
+      // This is a simple verification that the token is properly signed
+      // Convert string to Uint8Array for jose
+      const secretKey = new TextEncoder().encode(JWT_SECRET);
+      await jose.jwtVerify(token, secretKey);
+      
+      // Token is valid, continue
+      return NextResponse.next();
+    } catch (jwtError) {
+      // Token is invalid, redirect to login
+      console.error('Invalid token:', jwtError);
+      const url = new URL('/login', request.url);
+      return NextResponse.redirect(url);
+    }
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    // On error, redirect to login as a fallback
+    const url = new URL('/login', request.url);
+    return NextResponse.redirect(url);
+  }
 }
 
 export const config = {
