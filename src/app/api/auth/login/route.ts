@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { VALID_USERNAME, VALID_PASSWORD, JWT_SECRET, JWT_EXPIRATION } from '@/lib/config';
+import { JWT_SECRET, JWT_EXPIRATION } from '@/lib/config';
+import { findUserByUsername, verifyPassword } from '@/lib/services/userService';
 
 // Set runtime to Node.js to support the crypto module used by jsonwebtoken
 export const runtime = 'nodejs';
@@ -19,9 +20,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate credentials
-    // In a real app, you would check against a database
-    if (username !== VALID_USERNAME || password !== VALID_PASSWORD) {
+    // Find user in database
+    const user = await findUserByUsername(username);
+
+    // Check if user exists
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid username or password' },
+        { status: 401 }
+      );
+    }
+    
+    // Verify password
+    const isValidPassword = await verifyPassword(password, user.password);
+
+    console.log('isValidPassword', isValidPassword);
+    
+    if (!isValidPassword) {
       return NextResponse.json(
         { error: 'Invalid username or password' },
         { status: 401 }
@@ -31,7 +46,8 @@ export async function POST(request: Request) {
     // Generate JWT token
     const token = jwt.sign(
       { 
-        username,
+        username: user.username,
+        userId: user.id
         // Add any additional user data you want in the token
       },
       JWT_SECRET,
@@ -43,7 +59,10 @@ export async function POST(request: Request) {
       { 
         success: true,
         token,
-        user: { username }
+        user: { 
+          username: user.username,
+          id: user.id 
+        }
       },
       { 
         status: 200,
