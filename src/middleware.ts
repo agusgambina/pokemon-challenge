@@ -9,7 +9,9 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/_next') ||
     request.nextUrl.pathname.startsWith('/api') ||
-    request.nextUrl.pathname.startsWith('/favicon.ico')
+    request.nextUrl.pathname.startsWith('/favicon.ico') ||
+    request.nextUrl.pathname.endsWith('.svg') ||  // Allow SVG files
+    request.nextUrl.pathname === '/pokemon_logo.svg'  // Specifically allow the Pokemon logo
   ) {
     return NextResponse.next();
   }

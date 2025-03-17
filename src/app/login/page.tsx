@@ -24,14 +24,14 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!username || !password) {
       setError('Username and password are required');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       const success = await login(username, password);
       if (!success) {
@@ -53,25 +53,28 @@ export default function Login() {
         <div className="flex justify-center mb-8">
           <Image
             className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={120}
-            height={25}
+            src="/pokemon_logo.svg"
+            alt="Pok&eacute;mon logo"
+            width={263}
+            height={93}
             priority
           />
         </div>
-        
+
         <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-        
+
         {error && (
           <div className="bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3 rounded mb-4">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2" htmlFor="username">
+            <label
+              className="block text-sm font-medium mb-2"
+              htmlFor="username"
+            >
               Username
             </label>
             <input
@@ -83,9 +86,12 @@ export default function Login() {
               disabled={isLoading}
             />
           </div>
-          
+
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2" htmlFor="password">
+            <label
+              className="block text-sm font-medium mb-2"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
@@ -97,7 +103,7 @@ export default function Login() {
               disabled={isLoading}
             />
           </div>
-          
+
           <button
             type="submit"
             className="w-full py-3 px-4 bg-foreground text-background rounded-full hover:bg-[#383838] dark:hover:bg-[#ccc] transition-colors"
@@ -109,4 +115,4 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+}
