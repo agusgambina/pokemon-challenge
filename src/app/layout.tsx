@@ -1,6 +1,8 @@
-import type { Metadata } from 'next';
+'use client';
+
 import { Geist, Geist_Mono } from 'next/font/google';
-import { AuthProvider } from '@/components/AuthProvider';
+import { AuthProvider, useAuth } from '@/components/AuthProvider';
+import Header from '@/components/Header';
 import './globals.css';
 
 const geistSans = Geist({
@@ -13,24 +15,29 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: 'Next.js App',
-  description: 'Created with Next.js',
-};
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
+    <AuthProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </AuthProvider>
+  );
+}
+
+// Create a separate component to use the useAuth hook
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+
+  return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        {user && <Header user={user} logout={logout} />}
+        {children}
       </body>
     </html>
   );

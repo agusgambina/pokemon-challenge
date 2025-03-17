@@ -3,7 +3,6 @@
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Header from '@/components/Header';
 
 export default function Home() {
   const { user, logout, loading } = useAuth();
@@ -22,8 +21,7 @@ export default function Home() {
   }
 
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] items-start justify-items-center min-h-screen gap-16 font-[family-name:var(--font-geist-sans)]" style={{ padding: '1%' }}>
-      <Header user={user} logout={logout} />
+    <div className="grid grid-rows-[auto_1fr_auto] items-start justify-items-center min-h-screen gap-16 font-[family:var(--font-geist-sans)]" style={{ padding: '1%' }}>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start"></main>
     </div>
   );
