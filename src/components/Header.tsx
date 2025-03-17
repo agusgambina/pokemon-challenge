@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export default function Header({ user, logout }: HeaderProps) {
   return (
-    <div className="flex justify-between items-center w-full row-start-1 sticky top-0 z-10 bg-white dark:bg-black py-4">
+    <div className="flex justify-between items-center w-full row-start-1 sticky top-0 z-10 bg-white dark:bg-black py-4 px-4">
       <div>
         <Image
           className="dark:invert"
