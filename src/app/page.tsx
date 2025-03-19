@@ -4,19 +4,31 @@ import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { pokemonService } from '@/lib/services/pokemonService';
-import type { Pokemon, PokemonDetail } from '@/lib/services/pokemonService';
+import type { PokemonDetail, Pokemon } from '@/lib/services/pokemonService';
 import SearchBar from '@/components/SearchBar';
 import PaginationControls from '@/components/PaginationControls';
 import Grid from '@/components/Grid';
+import { useQuery, useQueries } from '@tanstack/react-query';
 
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const limit = 20;
-  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-  const [pokemonDetails, setPokemonDetails] = useState<Record<string, unknown>>({});
   const [offset, setOffset] = useState<number>(0);
-  const [page, setPage] = useState<number>(1);
+
+  const { data: queryPokemons } = useQuery({
+    queryKey: ['pokemons', limit, offset],
+    queryFn: () => pokemonService.getPokemons(limit, offset),
+    enabled: !!user,
+  });
+
+  const pokemonQueries = useQueries({
+    queries: (queryPokemons?.results ?? []).map((pokemon: Pokemon) => ({
+      queryKey: ['pokemon', pokemon.name],
+      queryFn: () => pokemonService.getPokemon(pokemon.name),
+      enabled: !!user && !!pokemon.name,
+    })),
+  });
 
   useEffect(() => {
     // Redirect to login if user is not authenticated
@@ -25,36 +37,22 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
-  useEffect(() => {
-    if (user) {
-      async function fetchPokemons() {
-        try {
-          const pokemons = await pokemonService.getPokemons(limit, offset);
-          setPokemons(pokemons.results);
-          setPage(Math.ceil(pokemons.count / limit));
-
-          // Fetch details for each Pokemon
-          const details = await Promise.all(
-            pokemons.results.map(async (pokemon) => {
-              const detail = await pokemonService.getPokemon(pokemon.name);
-              return [pokemon.name, detail];
-            })
-          );
-          setPokemonDetails(Object.fromEntries(details));
-        } catch (error) {
-          console.error('Error fetching Pokemons:', error);
-        }
-      }
-      fetchPokemons();
-    }
-  }, [user, limit, offset]);
-
   // Don't render anything while checking authentication
   if (loading || !user) {
     return null;
   }
 
-  if (!pokemons) return <div>Loading...</div>;
+  if (!queryPokemons) return <div>Loading...</div>;
+
+  // Calculate details object from queries
+  const pokemonDetails = queryPokemons.results.reduce((acc: Record<string, PokemonDetail>, pokemon: Pokemon, index: number) => {
+    if (pokemonQueries[index].data) {
+      acc[pokemon.name] = pokemonQueries[index].data;
+    }
+    return acc;
+  }, {} as Record<string, PokemonDetail>);
+
+  const page = Math.ceil(queryPokemons.count / limit);
 
   return (
     <div
@@ -65,7 +63,7 @@ export default function Home() {
         <div className="w-full px-4 py-16 sm:px-6 sm:py-24">
           <SearchBar />
 
-          <Grid pokemons={pokemons} pokemonDetails={pokemonDetails as Record<string, PokemonDetail>} />
+          <Grid pokemons={queryPokemons.results} pokemonDetails={pokemonDetails} />
 
           <PaginationControls offset={offset} setOffset={setOffset} page={page} limit={limit} />
         </div>
