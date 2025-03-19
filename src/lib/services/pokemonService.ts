@@ -13,6 +13,31 @@ export interface PokemonResponse {
 export interface PokemonDetail {
   name: string;
   url: string;
+  sprites?: {
+    front_default?: string;
+    back_default?: string;
+    front_shiny?: string;
+    back_shiny?: string;
+    other?: {
+      'official-artwork'?: {
+        front_default?: string;
+      };
+      dream_world?: {
+        front_default?: string;
+      };
+      home?: {
+        front_default?: string;
+      };
+    };
+  };
+  abilities?: {
+    ability: {
+      name: string;
+      url: string;
+    };
+    is_hidden: boolean;
+    slot: number;
+  }[];
 }
 
 export const pokemonService = {
@@ -28,10 +53,10 @@ export const pokemonService = {
     }
   },
 
-  async getPokemon(name: string): Promise<Pokemon> {
+  async getPokemon(name: string): Promise<PokemonDetail> {
     const pokemonApiUrl = `${process.env.NEXT_PUBLIC_POKEMON_API_URL!}/api/v2/pokemon/${name}`;
     const res = await fetch(pokemonApiUrl);
-    const data: Pokemon = await res.json();
+    const data: PokemonDetail = await res.json();
     return data;
   }
 };

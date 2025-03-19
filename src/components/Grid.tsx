@@ -8,11 +8,7 @@ export default function Grid({ pokemons, pokemonDetails }: { pokemons: Pokemon[]
         <Card
           key={pokemon.name}
           pokemon={pokemon}
-          details={
-            pokemonDetails[pokemon.name] as {
-              sprites?: { front_default?: string };
-            }
-          }
+          details={pokemonDetails[pokemon.name]}
         />
       ))}
     </div>
