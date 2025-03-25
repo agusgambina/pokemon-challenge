@@ -9,16 +9,24 @@ import SearchBar from '@/components/SearchBar';
 import PaginationControls from '@/components/PaginationControls';
 import Grid from '@/components/Grid';
 import { useQuery, useQueries } from '@tanstack/react-query';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const limit = 20;
   const [offset, setOffset] = useState<number>(0);
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearchQuery = useDebounce(searchInput, 300);
+
+  // Reset offset when search query changes
+  useEffect(() => {
+    setOffset(0);
+  }, [debouncedSearchQuery]);
 
   const { data: queryPokemons } = useQuery({
-    queryKey: ['pokemons', limit, offset],
-    queryFn: () => pokemonService.getPokemons(limit, offset),
+    queryKey: ['pokemons', limit, offset, debouncedSearchQuery],
+    queryFn: () => debouncedSearchQuery ? pokemonService.searchPokemon(debouncedSearchQuery) : pokemonService.getPokemons(limit, offset),
     enabled: !!user,
   });
 
@@ -61,11 +69,13 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full"></main>
       <div className="bg-white dark:bg-gray-900 w-full">
         <div className="w-full px-4 py-16 sm:px-6 sm:py-24">
-          <SearchBar />
+          <SearchBar value={searchInput} onChange={setSearchInput} />
 
           <Grid pokemons={queryPokemons.results} pokemonDetails={pokemonDetails} />
 
-          <PaginationControls offset={offset} setOffset={setOffset} page={page} limit={limit} />
+          {!debouncedSearchQuery && (
+            <PaginationControls offset={offset} setOffset={setOffset} page={page} limit={limit} />
+          )}
         </div>
       </div>
     </div>

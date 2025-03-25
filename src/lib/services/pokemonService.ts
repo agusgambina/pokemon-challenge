@@ -58,5 +58,27 @@ export const pokemonService = {
     const res = await fetch(pokemonApiUrl);
     const data: PokemonDetail = await res.json();
     return data;
+  },
+
+  async searchPokemon(query: string): Promise<PokemonResponse> {
+    try {
+      const pokemonApiUrl = `${process.env.NEXT_PUBLIC_POKEMON_API_URL!}/api/v2/pokemon?limit=151`;
+      const res = await fetch(pokemonApiUrl);
+      const data: PokemonResponse = await res.json();
+      
+      // Filter pokemons based on the search query
+      const filteredResults = data.results.filter(pokemon => 
+        pokemon.name.toLowerCase().includes(query.toLowerCase())
+      );
+
+      return {
+        ...data,
+        results: filteredResults,
+        count: filteredResults.length
+      };
+    } catch (error) {
+      console.error('Error searching Pokemon:', error);
+      throw error;
+    }
   }
 };
