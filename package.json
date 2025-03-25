@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "db:reset": "prisma migrate reset --force",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "vercel-build": "prisma generate && prisma migrate deploy && prisma db seed && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
